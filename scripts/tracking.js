@@ -104,6 +104,7 @@ async function track(chapter = false, volume = false, onlySite = false, reduceIf
 					if(Date.now() - lastUpdatedChapters > 604800000) // One week
 					{
 						loadSiteScript(site);
+						if(!sitesScripts[site]) continue;
 						const comicData = (await sitesScripts[site].getComicData(data.id)) || {};
 						setTrackingChapters(site, comicData, mainPath);
 					}

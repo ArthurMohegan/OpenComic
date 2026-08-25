@@ -233,6 +233,7 @@
 			"aiDescreen": "AI 網紋去除",
 			"aiUpscale": "AI 放大",
 			"aiModel": "模型",
+			"aiKeepBigHalftone": "",
 			"downloadingAiModel": "正在下載 AI 模型",
 			"maxMegapixels": "最大輸入影像解析度 (百萬像素)",
 			"autoScale": "自動縮放",

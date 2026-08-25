@@ -233,6 +233,7 @@
 			"aiDescreen": "",
 			"aiUpscale": "",
 			"aiModel": "",
+			"aiKeepBigHalftone": "",
 			"downloadingAiModel": "",
 			"maxMegapixels": "",
 			"autoScale": "",

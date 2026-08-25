@@ -133,21 +133,58 @@ function _image(src, imageSize, options = {})
 	setModelsPath();
 	OpenComicAI.setSharp(sharp);
 
+	// Set tmp usage
+	const listModels = [];
+
+	const artifactRemoval = _config.readingAi.artifactRemoval;
+	const descreen = _config.readingAi.descreen;
 	const toUpscale = reading.ai.toUpscale(imageSize);
+
 	const _pipeline = [];
 
-	if(_config.readingAi.artifactRemoval.active)
+	if(artifactRemoval.active)
 	{
 		_pipeline.push({
-			model: _config.readingAi.artifactRemoval.model,
+			model: artifactRemoval.model,
 		});
+
+		listModels.push(artifactRemoval.model);
 	}
 
-	if(_config.readingAi.descreen.active)
+	if(descreen.active)
 	{
+		const descreenMaskModel = 'opencomic-ai-descreen-mask-fast-v3-test-500000';
+		const artifactRemovalModel = 'opencomic-ai-artifact-removal-compact';
+
 		_pipeline.push({
-			model: _config.readingAi.descreen.model,
+			model: descreen.model,
+
+			...(descreen.keepBigHalftone && {
+				keepBigHalftone: {
+					model: descreenMaskModel,
+					minSize: descreen.minSize,
+					// tileSize: 512, // TODO: This is not necesary when auto tile size is implemented
+
+					...(!artifactRemoval.active && { // Only add artifact removal if it's not already in the pipeline
+						artifactRemoval: {
+							model: artifactRemovalModel,
+						},
+					}),
+
+				},
+
+			}),
 		});
+
+		listModels.push(descreen.model);
+
+		if(descreen.keepBigHalftone)
+		{
+			listModels.push(descreenMaskModel);
+
+			if(!artifactRemoval.active)
+				listModels.push(artifactRemovalModel);
+		}
 	}
 
 	if(toUpscale)
@@ -157,6 +194,8 @@ function _image(src, imageSize, options = {})
 			scale: toUpscale.scale,
 			noise: toUpscale.noise,
 		});
+
+		listModels.push(toUpscale.model);
 	}
 
 	if(!_pipeline.length)
@@ -182,9 +221,9 @@ function _image(src, imageSize, options = {})
 
 	(async function(){
 
-		for(const step of _pipeline)
+		for(const model of listModels)
 		{
-			const modelInfo = OpenComicAI.model(step.model);
+			const modelInfo = OpenComicAI.model(model);
 
 			for(const file of modelInfo.files)
 			{

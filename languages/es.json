@@ -233,6 +233,7 @@
 			"aiDescreen": "Desentramado con IA",
 			"aiUpscale": "Escalado con IA",
 			"aiModel": "Modelo",
+			"aiKeepBigHalftone": "Mantener semitonos grandes",
 			"downloadingAiModel": "Descargando el modelo de IA",
 			"maxMegapixels": "Resolución máxima de imagen de entrada (Megapíxeles)",
 			"autoScale": "Escala automática",

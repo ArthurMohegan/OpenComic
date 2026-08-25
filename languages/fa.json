@@ -233,6 +233,7 @@
 			"aiDescreen": "حذف الگوی چاپ با AI",
 			"aiUpscale": "افزایش وضوح با AI",
 			"aiModel": "مدل",
+			"aiKeepBigHalftone": "",
 			"downloadingAiModel": "دانلود مدل AI",
 			"maxMegapixels": "حداکثر وضوح ورودی (مگاپیکسل)",
 			"autoScale": "مقیاس خودکار",

@@ -233,6 +233,7 @@
 			"aiDescreen": "AI 去网纹",
 			"aiUpscale": "AI 增强",
 			"aiModel": "模型",
+			"aiKeepBigHalftone": "",
 			"downloadingAiModel": "下载 AI 模型",
 			"maxMegapixels": "最大输入图像分辨率（百万像素）",
 			"autoScale": "自动比例",

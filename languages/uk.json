@@ -233,6 +233,7 @@
 			"aiDescreen": "AI-видалення растру",
 			"aiUpscale": "AI-масштабування",
 			"aiModel": "Модель",
+			"aiKeepBigHalftone": "",
 			"downloadingAiModel": "Завантаження AI-моделі",
 			"maxMegapixels": "Максимальна роздільна здатність вхідного зображення (Мегапікселі)",
 			"autoScale": "Автоматичне масштабування",

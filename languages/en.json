@@ -233,6 +233,7 @@
 			"aiDescreen": "AI descreen",
 			"aiUpscale": "AI upscale",
 			"aiModel": "Model",
+			"aiKeepBigHalftone": "Keep big halftones",
 			"downloadingAiModel": "Downloading AI model",
 			"maxMegapixels": "Max input image resolution (Megapixels)",
 			"autoScale": "Auto scale",
