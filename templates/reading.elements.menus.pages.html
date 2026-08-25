@@ -331,9 +331,9 @@
 		</div>
 		<div class="tabs-page-layout{{#compare readingPagesTab '==' 'page-layout'}} active{{/compare}}">
 
-			<div class="menu-simple-text reading-view{{#if _config.readingWebtoon}} disable-pointer{{/if}}" style="padding-top: 8px; padding-bottom: 0px;">
+			<div class="menu-simple-text reading-view" style="padding-top: 8px; padding-bottom: 0px;">
 
-				<div class="chip chip-big label-large chip-icon-left reading-view-slide gamepad-item{{#compare _config.readingView '==' 'slide'}} active{{/compare}}" onclick="reading.changePagesView(1, 'slide', false);">
+				<div class="chip chip-big label-large chip-icon-left reading-view-slide gamepad-item{{#compare _config.readingView '==' 'slide'}} active{{/compare}}{{#if _config.readingWebtoon}} disable-pointer{{/if}}" onclick="reading.changePagesView(1, 'slide', false);">
 					<div></div><i class="material-icon" onclick="">transition_slide</i> <span>{{language.reading.pages.slide}}</span>
 				</div>
 
@@ -341,19 +341,19 @@
 					<div></div><i class="material-icon" onclick="">contract</i> <span>{{language.reading.pages.scroll}}</span>
 				</div>
 
-				<div class="disable-pointer chip chip-big label-large chip-icon-left chip-icon-right reading-view-panels gamepad-item{{#compare _config.readingView '==' 'panels'}} active{{/compare}}" onclick="reading.changePagesView(1, 'panels', false)">
+				<div class="chip chip-big label-large chip-icon-left chip-icon-right reading-view-panels gamepad-item{{#compare _config.readingView '==' 'panels'}} active{{/compare}}" onclick="reading.changePagesView(1, 'panels', false)">
 					<div></div><i class="material-icon" onclick="">space_dashboard</i> <span>{{language.reading.pages.panels}}</span> <i class="material-icon right" onclick="reading.panels.configDialog(event)">settings</i>
 				</div>
 
-				<div class="chip chip-big label-large chip-icon-left reading-view-fade gamepad-item{{#compare _config.readingView '==' 'fade'}} active{{/compare}}" onclick="reading.changePagesView(1, 'fade', false)">
+				<div class="chip chip-big label-large chip-icon-left reading-view-fade gamepad-item{{#compare _config.readingView '==' 'fade'}} active{{/compare}}{{#if _config.readingWebtoon}} disable-pointer{{/if}}" onclick="reading.changePagesView(1, 'fade', false)">
 					<div></div><i class="material-icon" onclick="">transition_fade</i> <span>{{language.reading.pages.fade}}</span>
 				</div>
 
-				<div class="chip chip-big label-large chip-icon-left chip-icon-right reading-view-rough-page-turn gamepad-item{{#compare _config.readingView '==' 'rough-page-turn'}} active{{/compare}}" onclick="reading.changePagesView(1, 'rough-page-turn', false)">
+				<div class="chip chip-big label-large chip-icon-left chip-icon-right reading-view-rough-page-turn gamepad-item{{#compare _config.readingView '==' 'rough-page-turn'}} active{{/compare}}{{#if _config.readingWebtoon}} disable-pointer{{/if}}" onclick="reading.changePagesView(1, 'rough-page-turn', false)">
 					<div></div><i class="material-icon" onclick="">import_contacts</i> <span>{{language.reading.pages.roughPageTurn}} ({{language.global.beta}})</span> <i class="material-icon right" onclick="reading.pageTransitions.configDialog(event, 'roughPageTurn')">settings</i>
 				</div>
 
-				<div class="chip chip-big label-large chip-icon-left chip-icon-right reading-view-smooth-page-turn gamepad-item{{#compare _config.readingView '==' 'smooth-page-turn'}} active{{/compare}}" onclick="reading.changePagesView(1, 'smooth-page-turn', false)">
+				<div class="chip chip-big label-large chip-icon-left chip-icon-right reading-view-smooth-page-turn gamepad-item{{#compare _config.readingView '==' 'smooth-page-turn'}} active{{/compare}}{{#if _config.readingWebtoon}} disable-pointer{{/if}}" onclick="reading.changePagesView(1, 'smooth-page-turn', false)">
 					<div></div><i class="material-icon" onclick="">auto_stories</i> <span>{{language.reading.pages.smoothPageTurn}} ({{language.global.alpha}})</span> <i class="material-icon right" onclick="reading.pageTransitions.configDialog(event, 'smoothPageTurn')">settings</i>
 				</div>
 
@@ -369,7 +369,7 @@
 			</div>
 
 			<div class="menu-simple-separator-min"></div>
-			<div class="menu-simple-text reading-reading-manga gamepad-item{{#if _config.readingWebtoon}} disable-pointer{{/if}}">
+			<div class="menu-simple-text reading-reading-manga gamepad-item{{#if _config.readingWebtoon}}{{#compare _config.readingView '!=' 'panels'}} disable-pointer{{/compare}}{{/if}}">
 				{{language.reading.pages.readingManga}}
 				<div class="switch{{#if _config.readingManga}} a{{/if}}" on="reading.changePagesView(8, true, false)" off="reading.changePagesView(8, false, false)">
 					<div></div>

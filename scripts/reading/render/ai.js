@@ -131,6 +131,7 @@ const downloading = {
 function _image(src, imageSize, options = {})
 {
 	setModelsPath();
+	OpenComicAI.setSharp(sharp);
 
 	const toUpscale = reading.ai.toUpscale(imageSize);
 	const _pipeline = [];
@@ -213,7 +214,7 @@ function _image(src, imageSize, options = {})
 				imagePath = convertPath;
 			}
 
-			OpenComicAI.keepIccProfile(sharp, 'rgb16');
+			OpenComicAI.keepIccProfile('rgb16');
 			await OpenComicAI.pipeline(imagePath, path, _pipeline, options.progress || false, downloading);
 
 			fileManager.setTmpUsage(path);
@@ -254,4 +255,5 @@ module.exports = {
 	pipeline,
 	image: _image,
 	clean,
+	downloading,
 };

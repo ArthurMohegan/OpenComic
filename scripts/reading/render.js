@@ -805,4 +805,5 @@ module.exports = {
 	setOnRender: setOnRender,
 	revokeAllObjectURL: revokeAllObjectURL,
 	get rendered() {return rendered},
+	ai,
 }

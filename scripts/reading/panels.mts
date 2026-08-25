@@ -3,12 +3,17 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import sharp from 'sharp';
 import {setProperty} from 'dot-prop';
-import OpenComicAI, {Yolo, Detection, Box} from 'opencomic-ai-bin';
+import OpenComicAI, {Downloading, Detection, Box} from 'opencomic-ai-bin';
 
 import view from './view.mjs';
 import corners from './panels/corners.mjs';
 
 import {PanelsConfig, Point} from '@types';
+
+type PanelBox = Box & {
+	score: number;
+	corners: ReturnType<typeof corners>;
+};
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare const app: any;
@@ -23,8 +28,28 @@ declare const language: any;
 declare const template: any;
 declare const tempFolder: any;
 declare const compatible: any;
+declare const fileManager: any;
 declare const handlebarsContext: any;
+declare const asarToAsarUnpacked: any;
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+OpenComicAI.setDirname(asarToAsarUnpacked(OpenComicAI.__dirname));
+
+let currentPath: string | false = false;
+
+function setModelsPath()
+{
+	const path = p.join(tempFolder, 'ai-models');
+
+	if(!fs.existsSync(path))
+		fs.mkdirSync(path, {recursive: true});
+
+	if(currentPath !== path)
+	{
+		OpenComicAI.setModelsPath(path);
+		currentPath = path;
+	}
+}
 
 interface HTMLDivElementMask extends HTMLDivElement {
 	path?: string;
@@ -51,30 +76,36 @@ function focusPage(page: number, fromScroll = false)
 
 async function _getPanels(src: string): Promise<Detection>
 {
-	OpenComicAI.yolo.setSharp(sharp);
+	setModelsPath();
+	OpenComicAI.setSharp(sharp);
 
-	// For test only
-	const model = '/home/llopart/Documentos/github/panel-detection/oc-ai-panel-detection-test2.onnx';
+	// Test model
+	const model = 'opencomic-ai-panels-fast-512-channels-inverted-259780';
 
-	const _yolo: Yolo = {
+	const options = {
 		model,
-		labels: ['panel'],
-		providers: ['cpu'],
-		inputShape: [1, 3, 640, 640],
-		topk: 1000,
-		scoreThreshold: 0.7,
-		mask: {
-			threshold: 0.5,
-			minArea: 0,
-			scale: 1,
-			baseScale: 'model',
-			cropToBox: 4,
-			maxComponents: 1,
+		/*
+		upscale: {
+			model: 'opencomic-ai-upscale-compact', // TODO: Train a model specifically for this?
+			scale: 4,
 		},
+		*/
 	};
 
-	// TODO, this has an error, its closing the session ignore idle timeout restart
-	OpenComicAI.yolo.setIdleTimeout(5000); // (500);
+	// Set tmp usage
+	const listModels = [
+		model,
+	];
+
+	for(const model of listModels)
+	{
+		const modelInfo = OpenComicAI.model(model);
+
+		for(const file of modelInfo.files)
+		{
+			fileManager.setTmpUsage(p.join(modelInfo.path ?? '', file));
+		}
+	}
 
 	const folderSha = sha1(p.dirname(src));
 	const imageSha = sha1(`${src}|panels`);
@@ -93,15 +124,15 @@ async function _getPanels(src: string): Promise<Detection>
 	}
 
 	// console.time('Detection');
-	const _detection = await OpenComicAI.yolo.image(imagePath, _yolo);
+	const _detection = await OpenComicAI.panels.image(imagePath, options, reading.render.ai.downloading as Downloading);
 	// console.timeEnd('Detection');
 
 	if(convertPath)
 		fs.rmSync(convertPath, {force: true});
 
-	const detection = await OpenComicAI.yolo.path(_detection);
+	const detection = await OpenComicAI.panels.path(_detection);
 
-	return detection;
+	return detection as Detection;
 }
 
 async function getPanels(src: string, page: number)
@@ -114,7 +145,7 @@ async function getPanels(src: string, page: number)
 
 	const threadsId = threads.id('panels');
 
-	threads.job('panels', {useThreads: threads.SINGLE, delay: 100}, async function() {
+	threads.job('panels', {useThreads: threads.SINGLE, delay: 10}, async function() {
 
 		if(panelsCache[page])
 			return;
@@ -129,22 +160,24 @@ async function getPanels(src: string, page: number)
 			panels.boxes = [
 				{
 					box: [0, 0, image.width, image.height],
-					mask: [],
+					mask: new Uint8Array(),
 					width: image.width,
 					height: image.height,
 					label: 'panel',
 					score: 1,
-				},
+				} as unknown as Box,
 			];
 		}
 
-		for(let i = 0; i < panels.boxes.length; i++)
+		const boxes = panels.boxes as PanelBox[];
+
+		for(let i = 0; i < boxes.length; i++)
 		{
-			const box = panels.boxes[i];
-			panels.boxes[i].corners = corners(box.mask, box.width, box.height);
+			const box = boxes[i];
+			box.corners = corners(box.mask, box.width, box.height);
 		}
 
-		panels.boxes = sortBoxes(panels.boxes);
+		panels.boxes = sortBoxes(boxes);
 		panelsCache[page] = panels;
 
 		if(currentPannel === -1 && page === currentPage)
@@ -185,7 +218,7 @@ function closest(a: Point[], b: Point[]): [Point, Point]
 	return [bestA, bestB];
 }
 
-function sortBoxes(boxes: Box[]): Box[]
+function sortBoxes(boxes: PanelBox[]): Box[]
 {
 	const first = boxes[0];
 	const threshold = 0.05 * first.width;
@@ -201,7 +234,7 @@ function sortBoxes(boxes: Box[]): Box[]
 
 	};
 
-	const compare = (a: Box, b: Box) => {
+	const compare = (a: PanelBox, b: PanelBox) => {
 
 		const [aBottom, bBottom] = closest([invertX(a.corners.bottomLeft), invertX(a.corners.bottomRight)], [invertX(b.corners.bottomLeft), invertX(b.corners.bottomRight)]);
 		const [aTop, bTop] = closest([invertX(a.corners.topLeft), invertX(a.corners.topRight)], [invertX(b.corners.topLeft), invertX(b.corners.topRight)]);
@@ -391,14 +424,14 @@ function goPrev(animation: boolean = true): boolean
 
 function focusFullPage(page: number, animation: boolean = true)
 {
-	const box: Box = {
+	const box = {
 		box: [0, 0, 1, 1],
 		width: 1,
 		height: 1,
 		label: 'panel',
 		path: 'M0,0 L1,0 L1,1 L0,1 Z',
 		score: 1,
-	};
+	} as unknown as Box;
 
 	focusPanel(box, -1, page, animation);
 }
@@ -424,7 +457,8 @@ function focusPanel(box: Box, panel: number, page: number, animation: boolean = 
 	// Margin
 	const {top} = reading.margin();
 
-	const diff = Math.max(original.width, original.height) / box.width;
+	const diffX = original.width / box.width;
+	const diffY = original.height / box.height;
 
 	const panels: Box[] = [box];
 
@@ -446,7 +480,12 @@ function focusPanel(box: Box, panel: number, page: number, animation: boolean = 
 		panels.push(...nextPanels);
 	}
 
-	const normalized: [number, number, number, number][] = panels.map(panel => panel.box.map(v => v * diff) as [number, number, number, number]);
+	const normalized: [number, number, number, number][] = panels.map(panel => [
+		panel.box[0] * diffX,
+		panel.box[1] * diffY,
+		panel.box[2] * diffX,
+		panel.box[3] * diffY,
+	]);
 
 	let x1 = Math.min(...normalized.map(v => v[0]));
 	let y1 = Math.min(...normalized.map(v => v[1]));
@@ -548,6 +587,8 @@ function focusPanel(box: Box, panel: number, page: number, animation: boolean = 
 	// TODO: Limitate tranY to min scroll and max scroll
 	if(tranY < 0) tranY = 0;
 
+	reading.currentScale = scale;
+
 	reading.applyScale(animation, scale, false, false, false, {
 		// force: true,
 		tranX: tranX * scale,
@@ -558,15 +599,11 @@ function focusPanel(box: Box, panel: number, page: number, animation: boolean = 
 	// Play SFX sound
 	setTimeout(function() {
 
-		const side = Math.max(original.width, original.height);
-		const normalizeX = side / original.width;
-		const normalizeY = side / original.height;
-
 		const [x1, y1, x2, y2] = box.box;
-		const top = (y1 / box.height) * 100 * normalizeY;
-		const left = (x1 / box.width) * 100 * normalizeX;
-		const right = (x2 / box.width) * 100 * normalizeX;
-		const bottom = (y2 / box.height) * 100 * normalizeY;
+		const top = (y1 / box.height) * 100;
+		const left = (x1 / box.width) * 100;
+		const right = (x2 / box.width) * 100;
+		const bottom = (y2 / box.height) * 100;
 
 		reading.music.sfx.playBox(page, {
 			top,
@@ -595,7 +632,8 @@ function applyHideMasks(box: Box, panel: number, page: number, animation: boolea
 	// Margin
 	const {top} = reading.margin();
 
-	const diff = Math.max(original.width, original.height) / box.width;
+	const diffX = original.width / box.width;
+	const diffY = original.height / box.height;
 
 	const path = function(_string: string, original: {top: number; left: number} = {top: 0, left: 0}): {path: string; width: number; height: number} {
 
@@ -612,8 +650,8 @@ function applyHideMasks(box: Box, panel: number, page: number, animation: boolea
 			{
 				let [x, y] = v.split(/\s+/).map(v => parseFloat(v));
 
-				x = x * diff + original.left;
-				y = y * diff + original.top + top;
+				x = x * diffX + original.left;
+				y = y * diffY + original.top + top;
 
 				if(x > width) width = x;
 				if(y > height) height = y;
@@ -728,7 +766,7 @@ function applyHideMasks(box: Box, panel: number, page: number, animation: boolea
 					const position = view.pagesPosition[page];
 					const original = position.original;
 
-					const {path: pathM/* , width, height */} = path(box.path);
+					const {path: pathM/* , width, height */} = path(box.path!);
 
 					const mask = document.createElement('div') as HTMLDivElementMask;
 					mask.className = `reading-panels-hide-mask reading-panels-mask-${panelsConfig.hideEffect} animate`;
@@ -738,7 +776,7 @@ function applyHideMasks(box: Box, panel: number, page: number, animation: boolea
 					// mask.style.width = `${width}px`;
 					// mask.style.height = `${height}px`;
 					mask.style.width = `${original.width}px`;
-					mask.style.height = `${original.height}px`;
+					mask.style.height = `${original.height + top}px`;
 					mask.style.animationDelay = `${animationDurationS / 8}s`;
 					mask.style.animationDuration = `${animationDurationS / 2}s`;
 					mask.dataset.panel = `${panel}`;
@@ -772,7 +810,7 @@ function applyHideMasks(box: Box, panel: number, page: number, animation: boolea
 				mask.remove();
 			}
 
-			const pathM = path(box.path, original).path;
+			const pathM = path(box.path!, original).path;
 			paths.push(pathM);
 
 			const mask = document.createElement('div') as HTMLDivElementMask;
@@ -819,8 +857,11 @@ function applyHideMasks(box: Box, panel: number, page: number, animation: boolea
 	}
 }
 
-function removeAllMasks()
+function removeAllMasks(onlyInPanelsView = false)
 {
+	if(!reading.viewIs('panels') && onlyInPanelsView)
+		return;
+
 	const contentRight = template._contentRight();
 	dom.this(contentRight).find('.reading-panels-hide-mask, .reading-panels-immersive-mask, .reading-panels-immersive-hide-mask, .reading-panels-immersive-show-mask', true).remove();
 }
@@ -914,6 +955,7 @@ export default {
 	goNext,
 	goPrev,
 	configDialog,
+	removeAllMasks,
 	change,
 	updateCurrent,
 	get panelsCache() {return panelsCache},

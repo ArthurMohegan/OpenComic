@@ -1606,6 +1606,8 @@ function zoomIn(animation = true, center = false, delta = false)
 	if(zoomMoveData.active)
 		return;
 
+	panels.removeAllMasks(true);
+
 	if(delta) // From MouseWheel event
 		delta = delta * (config.mouseWheelSensitivityInZoom / 10);
 	else
@@ -1625,6 +1627,8 @@ function zoomOut(animation = true, center = false, delta = false)
 	if(zoomMoveData.active)
 		return;
 
+	panels.removeAllMasks(true);
+
 	if(delta) // From MouseWheel event
 		delta = delta * (config.mouseWheelSensitivityInZoom / 10);
 	else
@@ -1640,21 +1644,25 @@ function zoomOut(animation = true, center = false, delta = false)
 
 function zoomUp(delta = config.zoomMoveStep, animation = false)
 {
+	panels.removeAllMasks(true);
 	zoomMove(0, delta, animation);
 }
 
 function zoomDown(delta = config.zoomMoveStep, animation = false)
 {
+	panels.removeAllMasks(true);
 	zoomMove(0, -delta, animation);
 }
 
 function zoomLeft(delta = config.zoomMoveStep, animation = false)
 {
+	panels.removeAllMasks(true);
 	zoomMove(-delta, 0, animation);
 }
 
 function zoomRight(delta = config.zoomMoveStep, animation = false)
 {
+	panels.removeAllMasks(true);
 	zoomMove(delta, 0, animation);
 }
 
@@ -1700,6 +1708,8 @@ function setOriginalSize(currentScale)
 // Reset zoom or show in original size if is current in 1 scale
 function resetZoom(animation = true, index = false, apply = true, center = true, delayed = false)
 {
+	panels.removeAllMasks(true);
+
 	if(currentScale == 1) // Show current image in original size
 	{
 		let _image = contextMenu.getCurrentImage(false, false);
@@ -2631,6 +2641,11 @@ function changePagesView(mode, value, save)
 		else
 			template.globalElement('.reading-ajust-to-width, .reading-force-single-page').removeClass('disable-pointer');
 
+		if(value === 'panels')
+			template.globalElement('.reading-reading-manga').removeClass('disable-pointer');
+		else if(_config.readingWebtoon)
+			template.globalElement('.reading-reading-manga').addClass('disable-pointer');
+
 		reading.reloadAnimated(false, imageIndex);
 	}
 	else if(mode == 2) // Sets the margin of the pages
@@ -2677,9 +2692,11 @@ function changePagesView(mode, value, save)
 	{
 		updateReadingPagesConfig('readingWebtoon', value);
 
+		const manga = readingViewIs('panels') ? '' : '.reading-reading-manga, ';
+
 		if(value)
 		{
-			template.globalElement('.reading-view, .reading-reading-manga, .reading-double-page, .reading-double-page-shadow, .reading-do-not-apply-to-horizontals, .reading-blank-page, .reading-align-with-next-horizontal, .reading-ajust-to-width, .reading-margin-vertical, .reading-force-single-page').addClass('disable-pointer');
+			template.globalElement('.reading-view-slide, .reading-view-fade, .reading-view-rough-page-turn, .reading-view-smooth-page-turn, '+manga+' .reading-double-page-shadow, .reading-do-not-apply-to-horizontals, .reading-blank-page, .reading-align-with-next-horizontal, .reading-ajust-to-width, .reading-margin-vertical, .reading-force-single-page').addClass('disable-pointer');
 		
 			if(!_config.readingNotEnlargeMoreThanOriginalSize)
 			{
@@ -2695,7 +2712,7 @@ function changePagesView(mode, value, save)
 			if(_config.readingDoublePage)
 				template.globalElement('.reading-double-page-shadow, .reading-do-not-apply-to-horizontals, .reading-blank-page, .reading-align-with-next-horizontal').removeClass('disable-pointer');
 
-			template.globalElement('.reading-view, .reading-reading-manga, .reading-double-page, .reading-margin-vertical').removeClass('disable-pointer');
+			template.globalElement('.reading-view-slide, .reading-view-fade, .reading-view-rough-page-turn, .reading-view-smooth-page-turn, .reading-reading-manga, .reading-double-page, .reading-margin-vertical').removeClass('disable-pointer');
 		}
 
 		reading.reloadAnimated(false, imageIndex);
@@ -4236,6 +4253,8 @@ function pointermove(event)
 			let y = pageY - zoomMoveData.y;
 
 			dragZoom(x, y);
+
+			panels.removeAllMasks(true);
 		}
 	}
 
@@ -4363,6 +4382,8 @@ function pointermove(event)
 				readingDragScroll.pageY = pageY;
 				readingDragScroll.start = true;
 				dom.query('body').addClass('dragging');
+
+				panels.removeAllMasks(true);
 			}
 		}
 		else
@@ -5497,7 +5518,8 @@ module.exports = {
 	setShownContentLeft: function(value){shownContentLeft = value},
 	setShownBarHeader: function(value){shownBarHeader = value},
 	loadReadingMoreOptions: loadReadingMoreOptions,
-	currentScale: function(){return currentScale},
+	get currentScale(){return currentScale},
+	set currentScale(value){currentScale = value},
 	rightSize: function(){return view.rightSize},
 	zoomingIn: function(){return zoomingIn},
 	updateReadingPagesConfig: updateReadingPagesConfig,
