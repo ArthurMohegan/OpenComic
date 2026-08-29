@@ -50,7 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Add support for MangaBaka tracking site integration [`ab658f2`](https://github.com/ollm/OpenComic/commit/ab658f228ee792618a27b218cb616a23e0b0004c)
 - Add support for Bangumi tracking site integration [`4ec4550`](https://github.com/ollm/OpenComic/commit/4ec4550d8d919ec09294bcf76b118e92d7dbb220)
 - Option to keep big halftones [`ca4f66a`](https://github.com/ollm/OpenComic/commit/ca4f66ad94225b3eaa24474a03e0abc5b368731f)
-- Setting to use the first image as the poster for parent folders
+- Setting to use the first image as the poster for parent folders [`850ec8b`](https://github.com/ollm/OpenComic/commit/850ec8b83647402d98ea8075e7a020f0bdbcd397)
 
 ##### 🐛 Bug Fixes
 
