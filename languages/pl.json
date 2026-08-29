@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "Kontynuuj czytanie lub pierwsza strona"
 			},
 			"useTheFirstImageAsPoster": "Użyj pierwszego obrazu jako okładki (tylko jeśli obecnie żadnej nie ma)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "Pokazuj pełną ścieżkę przy otwieraniu komiksów z biblioteki",
 			"showFullPathOpened": "Pokazuj pełną ścieżkę przy otwieraniu pliku lub folderu",
 			"showLibraryPath": "Pokazuj w nagłówku ścieżkę biblioteki, ulubionych, etykiet itp.",

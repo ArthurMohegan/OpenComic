@@ -393,7 +393,8 @@
 				"anyFolder": "Any folder",
 				"continueReadingOrFirstPage": "Continue reading or first page"
 			},
-			"useTheFirstImageAsPoster": "Use the first image as a poster (Only if there is none currently)",
+			"useTheFirstImageAsPoster": "Use the first image as a poster (Only if none is currently set)",
+			"useTheFirstImageAsPosterInParentFolders": "Use the first image as the poster for parent folders (Only if none is currently set)",
 			"showFullPathLibrary": "Show full path when opening library comics",
 			"showFullPathOpened": "Show full path when opening a file or folder",
 			"showLibraryPath": "Show library, favorites, labels, etc in header path",

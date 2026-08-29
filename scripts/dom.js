@@ -1541,7 +1541,9 @@ async function _getFolderThumbnails(file, images, _images, path, folderSha, isAs
 	let shaIndex = {};
 	let poster = false;
 
-	if(Array.isArray(_images)) // 4 Images
+	const isArray = Array.isArray(_images);
+
+	if(isArray && (!config.useTheFirstImageAsPosterInParentFolders || _images.length === 0)) // 4 Images
 	{
 		if(isAsync) dom.queryAll('.sha-'+folderSha+' .folder-poster, .sha-'+folderSha+':not(.medium-list) .progress-pages').remove();
 
@@ -1577,6 +1579,9 @@ async function _getFolderThumbnails(file, images, _images, path, folderSha, isAs
 	}
 	else // Poster
 	{
+		if(isArray)
+			_images = _images[0];
+
 		if(isAsync) dom.queryAll('.sha-'+folderSha+' .folder-images').remove();
 
 		poster = cache.returnThumbnailsImages({path: _images.path, sha: _images.sha, type: 'poster', forceSize: viewModuleSize}, function(data){

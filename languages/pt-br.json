@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "Continuar lendo ou primeira página"
 			},
 			"useTheFirstImageAsPoster": "Use a primeira imagem como capa (Apenas se não tiver nenhuma atualmente)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "Mostra o caminho completo quando estiver abrindo a biblioteca de quadrinhos",
 			"showFullPathOpened": "Mostra o caminho completo quando estiver abrindo um arquivo ou pasta",
 			"showLibraryPath": "Mostra biblioteca, etiquetas, etc no caminho do cabeçalho",

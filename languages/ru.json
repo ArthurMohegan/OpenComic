@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "Продолжить чтение или первая страница"
 			},
 			"useTheFirstImageAsPoster": "Использовать первое изображение как постер (если постера нет)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "Показывать полный путь при открытии комиксов из библиотеки",
 			"showFullPathOpened": "Показывать полный путь при открытии файла или папки",
 			"showLibraryPath": "Показывать библиотеку, избранное, метки и т.д. в пути заголовка",

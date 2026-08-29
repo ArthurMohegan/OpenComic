@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "استكمال القراءة أو الصفحة الأولى"
 			},
 			"useTheFirstImageAsPoster": "استخدام الصورة الأولى كصورة غلاف (فقط عند عدم وجود صورة بالفعل)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "عرض المسار كاملاً عند فتح قصة في المكتبة",
 			"showFullPathOpened": "عرض المسار كاملاً عند فتح ملف أو مجلد",
 			"showLibraryPath": "أظهر المكتبة، المفضلة، التصنيفات، إلخ في المسار العلوي",

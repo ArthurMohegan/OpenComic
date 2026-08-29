@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "ادامه مطالعه یا صفحه اول"
 			},
 			"useTheFirstImageAsPoster": "استفاده از اولین تصویر به‌عنوان پوستر (اگر وجود نداشته باشد)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "نمایش مسیر کامل هنگام باز کردن کمیک از کتابخانه",
 			"showFullPathOpened": "نمایش مسیر کامل هنگام باز کردن فایل یا پوشه",
 			"showLibraryPath": "نمایش کتابخانه، علاقه‌مندی‌ها، برچسب‌ها و… در مسیر بالای صفحه",

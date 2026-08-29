@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "Continuar llegint o primera pàgina"
 			},
 			"useTheFirstImageAsPoster": "Utilitzar la primera imatge com a pòster (Només si no n'hi ha cap actualment)",
+			"useTheFirstImageAsPosterInParentFolders": "Utilitzar la primera imatge com a pòster a les carpetes superiors (Només si no n'hi ha cap actualment)",
 			"showFullPathLibrary": "Mostrar la ruta completa a l'obrir els còmics de la biblioteca",
 			"showFullPathOpened": "Mostrar la ruta completa a l'obrir un arxiu o carpeta",
 			"showLibraryPath": "Mostra la biblioteca, favorits, etiquetes, etc a la ruta de la capçalera",

@@ -49,7 +49,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Support AudioManga SFX and OST effects [`9595169`](https://github.com/ollm/OpenComic/commit/9595169a6e498213dbc633472e60066d906d3c15)
 - Add support for MangaBaka tracking site integration [`ab658f2`](https://github.com/ollm/OpenComic/commit/ab658f228ee792618a27b218cb616a23e0b0004c)
 - Add support for Bangumi tracking site integration [`4ec4550`](https://github.com/ollm/OpenComic/commit/4ec4550d8d919ec09294bcf76b118e92d7dbb220)
-- Option to keep big halftones 
+- Option to keep big halftones [`ca4f66a`](https://github.com/ollm/OpenComic/commit/ca4f66ad94225b3eaa24474a03e0abc5b368731f)
+- Setting to use the first image as the poster for parent folders
 
 ##### 🐛 Bug Fixes
 

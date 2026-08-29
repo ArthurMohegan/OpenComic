@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "続きから or 最初のページ"
 			},
 			"useTheFirstImageAsPoster": "最初の画像をポスターとして使用（すでにポスターがない場合のみ）",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "ライブラリ内のコミックを開く際、フルパスを表示",
 			"showFullPathOpened": "ファイルやフォルダーを開く際、フルパスを表示",
 			"showLibraryPath": "ヘッダーのパスにライブラリ/お気に入り/ラベル等を表示",

@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "Lesen fortsetzen oder erste Seite"
 			},
 			"useTheFirstImageAsPoster": "Das erste Bild als Poster verwenden (Nur wenn aktuell keines vorhanden ist)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "Vollständigen Pfad beim Öffnen von Bibliotheks-Comics anzeigen",
 			"showFullPathOpened": "Vollständigen Pfad beim Öffnen einer Datei oder eines Ordners anzeigen",
 			"showLibraryPath": "Bibliothek, Favoriten, Labels usw. im Kopfzeilenpfad anzeigen",

@@ -3,7 +3,7 @@ const safe = require(p.join(appDir, '.dist/storage/safe.js')),
 	backup = require(p.join(appDir, '.dist/storage/backup.mjs')).default,
 	syncWindows = require(p.join(appDir, '.dist/storage/sync-windows.mjs')).default;
 
-const changes = 165; // Update this if readingPagesConfig or storageDefault is updated
+const changes = 166; // Update this if readingPagesConfig or storageDefault is updated
 
 const readingPagesConfig = {
 	readingPresetName: '',
@@ -284,6 +284,7 @@ const storageDefault = {
 		openingBehaviorFolder: 'file-list',
 		openingBehaviorFile: 'continue-reading-first-page',
 		useTheFirstImageAsPosterInFolders: false,
+		useTheFirstImageAsPosterInParentFolders: false,
 		useTheFirstImageAsPosterInFiles: true,
 		renderMaxWidth: 12000,
 		checkReleases: installedFromStore.check() ? false : true,

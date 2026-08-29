@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "Продовжувати або читати спочатку"
 			},
 			"useTheFirstImageAsPoster": "Використовувати перше зображення як обкладинку (якщо немає жодного)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "Показати повний шлях при відкритті коміксів з бібліотеки",
 			"showFullPathOpened": "Показати повний шлях при відкритті файлу або каталогу",
 			"showLibraryPath": "Показати бібліотеку, вибране, мітки тощо в шляху заголовка",

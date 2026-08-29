@@ -394,6 +394,7 @@
 				"continueReadingOrFirstPage": "อ่านต่อหรือหน้าแรก"
 			},
 			"useTheFirstImageAsPoster": "ใช้ภาพแรกเป็นภาพปก (กรณีที่ที่อยู่ปัจจุบันไม่ม่)",
+			"useTheFirstImageAsPosterInParentFolders": "",
 			"showFullPathLibrary": "แสดงที่ตั้งแบบเต็มเมื่อเปิดห้องสมุดคอมมิกส์",
 			"showFullPathOpened": "แสดงที่ตั้งแบบเต็มเมื่อเปิดไฟล์หรือโฟลเดอร์",
 			"showLibraryPath": "แสดงเส้นทางห้องสมุด เรื่องที่ชอบ ป้ายกำกับ และอื่น ๆ บนส่วนหัว",
