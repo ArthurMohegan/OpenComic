@@ -269,6 +269,9 @@ var file = function(path, _config = false) {
 
 					setFileData(path, json.files);
 
+					if(json.metadata)
+						this.saveCompressedMetadata(path, json.metadata, true);
+
 					return json.files;
 				}
 
@@ -720,10 +723,18 @@ var file = function(path, _config = false) {
 
 	}
 
-	this.saveCompressedMetadata = function(path, metadata) {
+	this.saveCompressedMetadata = function(path, metadata, onlyIfChanged = false) {
 
 		if(metadata.title || metadata.author)
 		{
+			if(onlyIfChanged)
+			{
+				const currentMetadata = storage.getKey('compressedMetadata', path);
+
+				if(currentMetadata && currentMetadata.title === metadata.title && currentMetadata.author === metadata.author)
+					return;
+			}
+
 			storage.setKey('compressedMetadata', path, {
 				title: metadata.title,
 				author: metadata.author,
