@@ -979,7 +979,7 @@ function getChapterImage(fallback = false)
 		const name = p.basename(image.path);
 		const current = currentImages.find((image) => image.name === name);
 
-		if(current.chapter)
+		if(current?.chapter)
 			return current.chapter;
 	}
 
@@ -1076,7 +1076,7 @@ function getVolumeImage(fallback = false)
 		const name = p.basename(image.path);
 		const current = currentImages.find((image) => image.name === name);
 
-		if(current.volume)
+		if(current?.volume)
 			return current.volume;
 	}
 

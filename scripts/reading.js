@@ -4192,6 +4192,35 @@ function currentImageIndex()
 	return currentImagePage() - 1;
 }
 
+function flattenToc(items)
+{
+	return items.flatMap(({subitems, ...item}) => [
+		item,
+		...flattenToc(subitems)
+	]);
+}
+
+function currentToc(index = false)
+{
+	index = index || currentImagePage();
+	let closest = {page: -1};
+
+	if(!readingIsEbook && !_ebook.toc || !_ebook.toc.length)
+		return closest;
+
+	const toc = flattenToc(_ebook.toc);
+
+	console.log(toc);
+	
+	for(let i = 0, len = toc.length; i < len; i++)
+	{
+		if(toc[i].page <= index && toc[i].page > closest.page)
+			closest = toc[i];
+	}
+
+	return closest;
+}
+
 function applyMoveZoomWithMouse(pageX = false, pageY = false)
 {
 	pageX = pageX || currentMousePosition.pageX;
@@ -5480,6 +5509,7 @@ module.exports = {
 	currentImagePage: currentImagePage,
 	currentImageIndex: currentImageIndex,
 	currentPageVisibility: function(){return currentPageVisibility},
+	currentToc: currentToc,
 	totalPages: function(){return imagesNum},
 	currentPage: function(){return currentPage},
 	currentPageIndex: function(){return currentPage - 1},
