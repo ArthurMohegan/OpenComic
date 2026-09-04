@@ -773,9 +773,12 @@ function getTitle(full = false)
 
 	if(!title)
 	{
-		if(compatible.compressed(path))
-			title = p.basename(path).replace(/\.[^/.]+$/, '');
-		else
+		// Disabled because archive filenames usually contain the volume/chapter
+		// name rather than the series name, resulting in an incorrect title.
+		// See: https://github.com/ollm/OpenComic/issues/638
+		// if(compatible.compressed(path))
+		// 	title = p.basename(path).replace(/\.[^/.]+$/, '');
+		// else
 			title = dom.history.mainPath ? p.basename(dom.history.mainPath) : '';
 	}
 
