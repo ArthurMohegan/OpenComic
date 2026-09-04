@@ -941,7 +941,7 @@ function zoomIn()
 	else if(factor < 0.50)
 		factor = 0.50;
 
-	storage.updateVar('config', 'zoomFactor', factor);
+	storage.setKey('config', 'zoomFactor', factor);
 
 	electron.webFrame.setZoomFactor(Math.round(factor * 100) / 100);
 }
@@ -966,14 +966,14 @@ function zoomOut()
 	else if(factor < 0.50)
 		factor = 0.50;
 
-	storage.updateVar('config', 'zoomFactor', factor);
+	storage.setKey('config', 'zoomFactor', factor);
 
 	electron.webFrame.setZoomFactor(Math.round(factor * 100) / 100);
 }
 
 function resetZoom()
 {
-	storage.updateVar('config', 'zoomFactor', 1);
+	storage.setKey('config', 'zoomFactor', 1);
 
 	electron.webFrame.setZoomLevel(0);
 }

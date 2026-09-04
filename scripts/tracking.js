@@ -323,7 +323,7 @@ function saveSiteConfig(site, key, value)
 	siteData.config[key] = value;
 
 	configSites[site] = siteData.config;
-	storage.updateVar('config', 'trackingSites', configSites);
+	storage.setKey('config', 'trackingSites', configSites);
 
 	setSiteData(site);
 }
@@ -441,7 +441,7 @@ function activeAndDeactivateTrackingSite(site = '', active = false)
 	if(_tracking[site])
 		_tracking[site].active = active;
 
-	storage.updateVar('tracking', dom.history.mainPath, _tracking);
+	storage.setKey('tracking', dom.history.mainPath, _tracking);
 }
 
 // Current dialog
@@ -664,7 +664,7 @@ function setTrackingId(site, siteId)
 		active: true,
 	};
 
-	storage.updateVar('tracking', dom.history.mainPath, _tracking);
+	storage.setKey('tracking', dom.history.mainPath, _tracking);
 
 	if(tracked[dom.history.mainPath] && tracked[dom.history.mainPath][site])
 		tracked[dom.history.mainPath][site] = [];
@@ -678,7 +678,7 @@ function setTrackingData(site, data)
 {
 	const _tracking = storage.getKey('tracking', dom.history.mainPath) || {};
 	_tracking[site] = {...(_tracking[site] ?? {}), ...data};
-	storage.updateVar('tracking', dom.history.mainPath, _tracking);
+	storage.setKey('tracking', dom.history.mainPath, _tracking);
 }
 
 function setTrackingChapters(site, options = {}, path = dom.history.mainPath)
@@ -698,7 +698,7 @@ function setTrackingChapters(site, options = {}, path = dom.history.mainPath)
 	};
 
 	_tracking[site] = data;
-	storage.updateVar('tracking', path, _tracking);
+	storage.setKey('tracking', path, _tracking);
 }
 
 // Others dialogs

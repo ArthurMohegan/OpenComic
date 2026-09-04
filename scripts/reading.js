@@ -2095,7 +2095,7 @@ function activeMagnifyingGlass(active = null, gamepad = false, fromSwitch = fals
 
 	if(active)
 	{
-		storage.updateVar('config', 'readingMagnifyingGlass', true);
+		storage.setKey('config', 'readingMagnifyingGlass', true);
 		render.setMagnifyingGlassStatus(config.readingMagnifyingGlassZoom, doublePage.active());
 
 		if(gamepad)
@@ -2115,7 +2115,7 @@ function activeMagnifyingGlass(active = null, gamepad = false, fromSwitch = fals
 	}
 	else
 	{
-		storage.updateVar('config', 'readingMagnifyingGlass', false);
+		storage.setKey('config', 'readingMagnifyingGlass', false);
 		magnifyingGlassControl(0);
 		render.setMagnifyingGlassStatus(false);
 	}
@@ -2134,7 +2134,7 @@ function changeMagnifyingGlass(mode, value, save)
 	{
 		magnifyingGlassControl(1, {pageX: pageX, pageY: pageY, originalEvent: {touches: false}}, {zoom: value});
 
-		if(save) storage.updateVar('config', 'readingMagnifyingGlassZoom', value);
+		if(save) storage.setKey('config', 'readingMagnifyingGlassZoom', value);
 
 		render.setScaleMagnifyingGlass(value, doublePage.active());
 	}
@@ -2142,19 +2142,19 @@ function changeMagnifyingGlass(mode, value, save)
 	{
 		magnifyingGlassControl(1, {pageX: pageX, pageY: pageY, originalEvent: {touches: false}}, {size: value});
 
-		if(save) storage.updateVar('config', 'readingMagnifyingGlassSize', value);
+		if(save) storage.setKey('config', 'readingMagnifyingGlassSize', value);
 	}
 	else if(mode == 3) //Set the ratio
 	{
 		magnifyingGlassControl(1, {pageX: pageX, pageY: pageY, originalEvent: {touches: false}}, {ratio: value});
 
-		if(save) storage.updateVar('config', 'readingMagnifyingGlassRatio', value);
+		if(save) storage.setKey('config', 'readingMagnifyingGlassRatio', value);
 	}
 	else if(mode == 4) //Set the radius
 	{
 		magnifyingGlassControl(1, {pageX: pageX, pageY: pageY, originalEvent: {touches: false}}, {radius: value});
 
-		if(save) storage.updateVar('config', 'readingMagnifyingGlassRadius', value);
+		if(save) storage.setKey('config', 'readingMagnifyingGlassRadius', value);
 	}
 }
 
@@ -2460,9 +2460,9 @@ function hideBarHeader(value = null)
 	dom.query('.menu-simple-hide-tabs-bar').class((!value && !isFullScreen), 'disable-pointer');
 
 	if(isFullScreen)
-		storage.updateVar('config', 'readingHideBarHeaderFullScreen', value);
+		storage.setKey('config', 'readingHideBarHeaderFullScreen', value);
 	else
-		storage.updateVar('config', 'readingHideBarHeader', value);
+		storage.setKey('config', 'readingHideBarHeader', value);
 
 	hideContent(isFullScreen);
 }
@@ -2472,9 +2472,9 @@ function hideTabsBar(value = null)
 	if(value === null) value = !(isFullScreen ? config.readingHideTabsBarFullScreen : config.readingHideTabsBar);
 
 	if(isFullScreen)
-		storage.updateVar('config', 'readingHideTabsBarFullScreen', value);
+		storage.setKey('config', 'readingHideTabsBarFullScreen', value);
 	else
-		storage.updateVar('config', 'readingHideTabsBar', value);
+		storage.setKey('config', 'readingHideTabsBar', value);
 
 	hideContent(isFullScreen);
 }
@@ -2484,9 +2484,9 @@ function hideContentLeft(value = null)
 	if(value === null) value = !(isFullScreen ? config.readingHideContentLeftFullScreen : config.readingHideContentLeft);
 
 	if(isFullScreen)
-		storage.updateVar('config', 'readingHideContentLeftFullScreen', value);
+		storage.setKey('config', 'readingHideContentLeftFullScreen', value);
 	else
-		storage.updateVar('config', 'readingHideContentLeft', value);
+		storage.setKey('config', 'readingHideContentLeft', value);
 
 	hideContent(isFullScreen);
 }
@@ -2496,9 +2496,9 @@ function showPageNumber(value = null)
 	if(value === null) value = !(isFullScreen ? config.readingShowPageNumberFullScreen : config.readingShowPageNumber);
 
 	if(isFullScreen)
-		storage.updateVar('config', 'readingShowPageNumberFullScreen', value);
+		storage.setKey('config', 'readingShowPageNumberFullScreen', value);
 	else
-		storage.updateVar('config', 'readingShowPageNumber', value);
+		storage.setKey('config', 'readingShowPageNumber', value);
 
 	hideContent(isFullScreen);
 }
@@ -2587,7 +2587,7 @@ function updateReadingPagesConfig(key, value)
 		readingPagesConfig.configKey = false;
 		readingPagesConfig[key] = value;
 
-		storage.updateVar('readingPagesConfig', dom.history.mainPath, readingPagesConfig);
+		storage.setKey('readingPagesConfig', dom.history.mainPath, readingPagesConfig);
 	}
 	else if(currentReadingConfigKey > 0)
 	{
@@ -2597,12 +2597,12 @@ function updateReadingPagesConfig(key, value)
 		{		
 			readingShortcutPagesConfig[key] = value;
 
-			storage.updateVar('readingShortcutPagesConfig', currentReadingConfigKey, readingShortcutPagesConfig);
+			storage.setKey('readingShortcutPagesConfig', currentReadingConfigKey, readingShortcutPagesConfig);
 		}
 	}
 	else if(currentReadingConfigKey == 0)
 	{
-		storage.updateVar('config', key, value);
+		storage.setKey('config', key, value);
 	}
 }
 
@@ -3098,7 +3098,7 @@ function createAndDeleteBookmark(index = false, force = null)
 			activeBookmark(true);
 		}
 
-		storage.updateVar('bookmarks', relative.path(dom.history.mainPath), bookmarks);
+		storage.setKey('bookmarks', relative.path(dom.history.mainPath), bookmarks);
 	}
 }
 
@@ -3106,7 +3106,7 @@ function deleteBookmark(key)
 {
 	const bookmarks = getBookmarks();
 	bookmarks.splice(key, 1);
-	storage.updateVar('bookmarks', relative.path(dom.history.mainPath), bookmarks);
+	storage.setKey('bookmarks', relative.path(dom.history.mainPath), bookmarks);
 
 	loadBookmarks(true);
 }
@@ -3398,7 +3398,7 @@ function purgeGlobalReadingPagesConfig()
 			const labelConfigKey = getLabelConfigKey();
 
 			if(labelConfigKey === 0)
-				storage.deleteVar('readingPagesConfig', path);
+				storage.deleteKey('readingPagesConfig', path);
 		}
 	}
 }
@@ -3443,9 +3443,9 @@ function setReadingShortcutPagesConfig(key = 0, desactiveMenu = true)
 		const labelConfigKey = getLabelConfigKey();
 
 		if(labelConfigKey)
-			storage.updateVar('readingPagesConfig', dom.history.mainPath, {configKey: 0});
+			storage.setKey('readingPagesConfig', dom.history.mainPath, {configKey: 0});
 		else
-			storage.deleteVar('readingPagesConfig', dom.history.mainPath);
+			storage.deleteKey('readingPagesConfig', dom.history.mainPath);
 	}
 	else
 	{
@@ -3454,7 +3454,7 @@ function setReadingShortcutPagesConfig(key = 0, desactiveMenu = true)
 		if(!readingPagesConfig) readingPagesConfig = {};
 		readingPagesConfig.configKey = key;
 
-		storage.updateVar('readingPagesConfig', dom.history.mainPath, readingPagesConfig);
+		storage.setKey('readingPagesConfig', dom.history.mainPath, readingPagesConfig);
 	}
 
 	changePagesView(0);
@@ -3503,7 +3503,7 @@ function editReadingShortcutPagesConfigName(key = 0, save = false)
 		{
 			if(key === 0)
 			{
-				storage.updateVar('config', 'readingPresetName', name);
+				storage.setKey('config', 'readingPresetName', name);
 			}
 			else
 			{			
@@ -3513,7 +3513,7 @@ function editReadingShortcutPagesConfigName(key = 0, save = false)
 				{			
 					readingShortcutPagesConfig['readingPresetName'] = name;
 
-					storage.updateVar('readingShortcutPagesConfig', key, readingShortcutPagesConfig);
+					storage.setKey('readingShortcutPagesConfig', key, readingShortcutPagesConfig);
 
 				}
 			}
@@ -3599,7 +3599,7 @@ function newReadingShortcutPagesConfig(save = false)
 				labels: [],
 			};
 
-			storage.update('readingShortcutPagesConfig', readingShortcutPagesConfig);
+			storage.set('readingShortcutPagesConfig', readingShortcutPagesConfig);
 
 			reading.setReadingShortcutPagesConfig(newKey, false);
 
@@ -3641,7 +3641,7 @@ function removeReadingShortcutPagesConfig(key, confirm = false)
 
 		delete readingShortcutPagesConfig[key];
 
-		storage.update('readingShortcutPagesConfig', readingShortcutPagesConfig);
+		storage.set('readingShortcutPagesConfig', readingShortcutPagesConfig);
 
 		// Remove from comic config
 		var readingPagesConfig = storage.get('readingPagesConfig');
@@ -3652,7 +3652,7 @@ function removeReadingShortcutPagesConfig(key, confirm = false)
 				delete readingPagesConfig[path];
 		}
 
-		storage.update('readingShortcutPagesConfig', readingShortcutPagesConfig);
+		storage.set('readingShortcutPagesConfig', readingShortcutPagesConfig);
 		purgeGlobalReadingPagesConfig();
 
 		// Reload
@@ -3708,7 +3708,7 @@ function trackingSiteToFavorite(site = '')
 
 		configSites[site] = siteData.config;
 
-		storage.updateVar('config', 'trackingSites', configSites);
+		storage.setKey('config', 'trackingSites', configSites);
 
 		loadTrackigSites()
 	}

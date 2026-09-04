@@ -724,7 +724,7 @@ var file = function(path, _config = false) {
 
 		if(metadata.title || metadata.author)
 		{
-			storage.setVar('compressedMetadata', path, {
+			storage.setKey('compressedMetadata', path, {
 				title: metadata.title,
 				author: metadata.author,
 			});
