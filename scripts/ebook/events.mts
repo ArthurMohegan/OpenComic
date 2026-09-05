@@ -64,7 +64,7 @@ function openLink(link: string)
 		const id = link.split('#')[1]?.split('?')[0];
 
 		const parts = link.split('/');
-		const href = parts.pop()!.split('#')[0] + '#' + id;
+		const href = parts.pop()!.split('#')[0] + (id ? '#' + id : '');
 
 		reading.goToEbookId(id, href);
 	}

@@ -182,6 +182,15 @@ var ebook = function(book, config = {}) {
 	this.splitInPages = async function(html, basePath, path = false, chapter = {}) {
 
 		html = html.cloneNode(true);
+		const root = html.documentElement || html;
+
+		if(!html.body && root.namespaceURI === 'http://www.w3.org/2000/svg')
+		{
+			const doc = document.implementation.createHTMLDocument();
+			doc.body.appendChild(doc.importNode(root, true));
+			html = doc.documentElement;
+		}
+
 		html = await this.removeScripts(html); // This is unsafe, later the Sanitizer API would have to be applied
 		html = await this.resolvePaths(html, basePath);
 		html = await this.applyConfigToHtml(html, chapter);
@@ -652,6 +661,7 @@ var ebook = function(book, config = {}) {
 				transform-origin: top left !important;
 				width: ${chapter.width}px;
 				height: ${chapter.height}px;
+				margin: 0;
 			}
 		`;
 
@@ -720,7 +730,10 @@ var ebook = function(book, config = {}) {
 			bodyCssNotSplit.push('text-align: '+config.textAlign+' !important');
 
 		if(config.margin !== false)
+		{
 			bodyCss.push('margin: '+config.margin.top+'px '+config.margin.right+'px '+config.margin.bottom+'px '+config.margin.left+'px !important');
+			bodyCss.push('max-width: calc(100vw - '+(config.margin.left + config.margin.right)+'px) !important');
+		}
 
 		if(config.letterSpacing > -0.1)
 			allCss.push('letter-spacing: '+config.letterSpacing+'em !important');

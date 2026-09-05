@@ -650,7 +650,7 @@ function goToChapterProgress(chapterIndex, chapterProgress, animation = true)
 
 	if(closest.page)
 	{
-		let index = closest.page.index + 1;
+		let index = closest.page.index;
 
 		if(doublePage.active())
 			index = Math.ceil(index / 2);
@@ -2889,7 +2889,7 @@ function reloadAnimated(full = false, imageIndex = false)
 		if(readingIsEbook) handlebarsContext.loading = true;
 		template.loadContentRight('reading.content.right.html', true);
 
-		reading.reload(false, imageIndex);
+		reading.reload(full, imageIndex);
 
 	}, 10, 20);
 }
@@ -2900,7 +2900,7 @@ function reload(full = false, imageIndex = false)
 
 	if(full)
 	{
-		dom.openComic(true, (imagesData[imageIndex]?.path || dom.history.path), dom.history.mainPath, false, false, false, true);
+		dom.openComic(true, (imagesData[imageIndex]?.path || dom.history.path), dom.history.mainPath, false, false, true);
 	}
 	else
 	{
@@ -4194,6 +4194,9 @@ function currentImageIndex()
 
 function flattenToc(items)
 {
+	if(!Array.isArray(items))
+		return [];
+
 	return items.flatMap(({subitems, ...item}) => [
 		item,
 		...flattenToc(subitems)
@@ -4210,7 +4213,7 @@ function currentToc(index = false)
 
 	const toc = flattenToc(_ebook.toc);
 
-	console.log(toc);
+	// console.log(toc);
 	
 	for(let i = 0, len = toc.length; i < len; i++)
 	{

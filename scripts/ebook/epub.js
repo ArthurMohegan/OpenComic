@@ -1,4 +1,4 @@
-var epubjs = false;
+var foliate = false;
 const CONTAINER_PATH = 'META-INF/container.xml';
 
 var epub = function(path, config = {}) {
@@ -90,17 +90,41 @@ var epub = function(path, config = {}) {
 
 	this.toc = false;
 
+	this.resourcePath = function(uri) {
+
+		uri = decodeURIComponent(String(uri).split('#')[0].split('?')[0]);
+		return p.join(this.realPathZip, ...uri.split('/'));
+
+	}
+
 	this.openEpub = async function() {
 
 		if(this.epub) return;
-		if(epubjs === false) epubjs = require('epubjs');
+		if(foliate === false)
+			foliate = await import(asarToAsarUnpacked(p.join(appDir, 'node_modules/foliate-js/epub.js')));
 
 		await this.findContentOpf();
 
-		this.epub = new epubjs.Book(this.opf);
-		this.toc = await this.epub.loaded.navigation;
+		this.epub = new foliate.EPUB({
+			loadText: async uri => {
 
-		await this.epub.opened;
+				try
+				{
+					return await fsp.readFile(this.resourcePath(uri), 'utf8');
+				}
+				catch(error)
+				{
+					if(error.code === 'ENOENT') return null;
+					throw error;
+				}
+
+			},
+			loadBlob: uri => fsp.readFile(this.resourcePath(uri)),
+			getSize: uri => fs.statSync(this.resourcePath(uri)).size,
+		});
+
+		await this.epub.init();
+		this.toc = {toc: this.epub.toc || []};
 	}
 
 	this.getHrefNames = function(items, hrefNames = {}) {
@@ -129,21 +153,21 @@ var epub = function(path, config = {}) {
 
 		this.epubFiles = [];
 
-		if(this.epub.cover)
+		if(this.epub.resources.cover)
 			this.epubFiles.push('cover.tbn');
 
 		let hrefNames = this.getHrefNames(this.toc.toc);
 
 		let prevName = '';
 		let prevNameNum = 2;
-		let len = this.epub.spine.items.length;
+		let len = this.epub.sections.length;
 		let leadingZeros = Math.max(String(len).length, 4);
 
 		for(let i = 0; i < len; i++)
 		{
-			let item = this.epub.spine.items[i];
+			let item = this.epub.sections[i];
 
-			let name = hrefNames[item.href] || app.capitalize(app.extract(/^(.*?)\.[a-z0-9]+$/, item.idref, 1).trim());
+			let name = hrefNames[item.id] || app.capitalize(app.extract(/^(.*?)\.[a-z0-9]+$/, item.id, 1).trim());
 
 			if(!name)
 			{
@@ -176,19 +200,19 @@ var epub = function(path, config = {}) {
 		this.epubImages = [];
 		this.epubImagesList = [];
 
-		if(this.epub.cover)
+		if(this.epub.resources.cover)
 		{
 			this.epubImagesList.push('cover.tbn');
 
 			this.epubImages.push({
 				name: 'cover.tbn',
-				src: this.epub.cover,
+				src: this.resourcePath(this.epub.resources.cover.href),
 				base: '/',
 				num: 0,
 			});
 		}
 
-		let len = this.epub.spine.items.length;
+		let len = this.epub.sections.length;
 		let num = 1;
 
 		const promises = [];
@@ -199,7 +223,7 @@ var epub = function(path, config = {}) {
 
 			promises.push((async function() {
 
-				let item = self.epub.spine.items[i];
+				let item = self.epub.sections[i];
 				let chapter = await self.chapterHtml(i);
 
 				const images = chapter.html.querySelectorAll('img, image');
@@ -212,7 +236,7 @@ var epub = function(path, config = {}) {
 					{
 						self.epubImages.push({
 							src,
-							base: p.dirname(item.url),
+							base: p.dirname(self.resourcePath(item.id)),
 							num: _num,
 						});
 					}
@@ -347,7 +371,7 @@ var epub = function(path, config = {}) {
 
 		await this.openEpub();
 
-		let metadata = await this.epub.loaded.metadata;
+		let metadata = {...this.epub.metadata};
 
 		let res = fs.readFileSync(this.opf, 'utf8');
 
@@ -356,6 +380,7 @@ var epub = function(path, config = {}) {
 
 		// Author
 		metadata.author = this.getArrayMetadata(opf, 'dc:creator');
+		metadata.creator = metadata.author;
 
 		// Publisher
 		metadata.publisher = this.getArrayMetadata(opf, 'dc:publisher');
@@ -372,6 +397,10 @@ var epub = function(path, config = {}) {
 		// Source
 		metadata.source = this.getArrayMetadata(opf, 'dc:source');
 
+		// Dates
+		metadata.pubdate = this.getStringMetadata(opf, 'dc:date');
+		metadata.modified_date = this.getStringMetadata(opf, 'meta', '*[property="dcterms:modified"]');
+
 		// Contributor
 		metadata.contributor = this.getObjectMetadata(opf, 'dc:contributor', ['role']);
 
@@ -382,6 +411,9 @@ var epub = function(path, config = {}) {
 
 		// Series index
 		metadata.seriesIndex = this.getStringMetadata(opf, 'calibre:series_index', '*[property="group-position"]');
+
+		if(Array.isArray(metadata.language))
+			metadata.language = metadata.language.join(', ');
 
 		this.epubMetadata = metadata;
 
@@ -409,10 +441,10 @@ var epub = function(path, config = {}) {
 
 		if(this.chaptersHtml[index]) return this.chaptersHtml[index];
 
-		let section = this.epub.spine.get(index);
+		let section = this.epub.sections[index];
 
 		if(section)
-			return this.chaptersHtml[index] = {html: await section.load(this.request), section: section};
+			return this.chaptersHtml[index] = {html: await section.createDocument(), section: section};
 		else
 			throw new Error('Epub section not exists');
 
@@ -426,13 +458,13 @@ var epub = function(path, config = {}) {
 
 		await this.openEpub();
 
-		const fixedLayout = this.epub.packaging?.metadata?.layout === 'pre-paginated';
+		const fixedLayout = this.epub.rendition?.layout === 'pre-paginated';
 
 		let chapters = files.map(async function(file) {
 
 			if(file.name == 'cover.tbn')
 			{
-				await fsp.copyFile(self.removeFileScheme(self.epub.cover), file.path);
+				await fsp.copyFile(self.resourcePath(self.epub.resources.cover.href), file.path);
 				if(callback) callback(file.name);
 
 				return null;
@@ -442,9 +474,12 @@ var epub = function(path, config = {}) {
 				const index = self.getFileIndex(file.name);
 
 				const chapter = await self.chapterHtml(index);
-				const dirname = p.dirname(self.removeFileScheme(chapter.section.url));
+				const dirname = p.dirname(self.resourcePath(chapter.section.id));
 
-				const spine = self.epub.spine.items[index] || {};
+				const spine = {
+					...(self.epub.resources.spine[index] || {}),
+					href: chapter.section.id,
+				};
 
 				const spineFixed = spine.properties?.includes('rendition:layout-pre-paginated') ?? false;
 				const chapterFixedLayout = fixedLayout || spineFixed;
@@ -501,7 +536,7 @@ var epub = function(path, config = {}) {
 		await this.openEpub();
 		let files = await this.readEpubFiles();
 
-		const fixedLayout = this.epub.packaging?.metadata?.layout === 'pre-paginated';
+		const fixedLayout = this.epub.rendition?.layout === 'pre-paginated';
 		
 		let chapters = files.map(async function(file){
 
@@ -510,9 +545,12 @@ var epub = function(path, config = {}) {
 				const index = self.getFileIndex(file);
 
 				const chapter = await self.chapterHtml(index);
-				const dirname = p.dirname(self.removeFileScheme(chapter.section.url));
+				const dirname = p.dirname(self.resourcePath(chapter.section.id));
 
-				const spine = self.epub.spine.items[index] || {};
+				const spine = {
+					...(self.epub.resources.spine[index] || {}),
+					href: chapter.section.id,
+				};
 
 				const spineFixed = spine.properties?.includes('rendition:layout-pre-paginated') || spine.properties?.includes('layout-pre-paginated') || false;
 				const chapterFixedLayout = fixedLayout || spineFixed;
@@ -605,7 +643,8 @@ var epub = function(path, config = {}) {
 			}
 		}
 
-		const viewbox = html.querySelector('svg[viewBox], svg[viewbox]') || (html.matches('svg[viewBox], svg[viewbox]') ? html : false)
+		const root = html.documentElement || html;
+		const viewbox = html.querySelector('svg[viewBox], svg[viewbox]') || (root.matches?.('svg[viewBox], svg[viewbox]') ? root : false)
 
 		if(viewbox)
 		{
