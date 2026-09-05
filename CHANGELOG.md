@@ -67,7 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Align with next horizontal` conflicts with `Blank page at the beginning` [`0af09be`](https://github.com/ollm/OpenComic/commit/0af09be7501ad550c261faa24e5bbe8588465005)
 - Support searching for NSFW manga on MyAnimeList [`b59fdfe`](https://github.com/ollm/OpenComic/commit/b59fdfe337836584080b5d65cc6e58e3a53fbd1e)
 - Some errors saving progress [`ebe4285`](https://github.com/ollm/OpenComic/commit/ebe4285501b5df151f519c964bdabf66b10e6094)
-- Zoom calculation on window resize
+- Zoom calculation on window resize [`142574c`](https://github.com/ollm/OpenComic/commit/142574c7fb92fc97903e0ed4e10ac09d65c33fa6)
 
 ## [v1.6.5](https://github.com/ollm/OpenComic/releases/tag/v1.6.5) (31-10-2025)
 
