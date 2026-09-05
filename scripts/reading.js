@@ -1563,8 +1563,10 @@ function applyDiffScrolls(diff = 0)
 
 function zoomScrollHeight()
 {
-	if(scalePrevData.scale != 1 && config.readingGlobalZoom && readingViewIs('scroll'))
+	if(scalePrevData.scale != 1)
 	{
+		const globalZoomScroll = config.readingGlobalZoom && readingViewIs('scroll');
+
 		let contentRight = template._contentRight();
 		let readingBody = contentRight.querySelector('.reading-body');
 		let readingBodyChild = readingBody.firstElementChild;
@@ -1575,18 +1577,16 @@ function zoomScrollHeight()
 		let childRect = readingBodyChild.getBoundingClientRect();
 		originalRectReadingBody = content.getBoundingClientRect();
 
-		let diff = childRect.height / originalRect2.height;
-
 		originalRect = {
-			width: diff * originalRect.width,
-			height: diff * originalRect.height,
+			width: newRect.width,
+			height: globalZoomScroll ? newRect.height / scalePrevData.scale : newRect.height,
 			left: newRect.left,
 			top: newRect.top,
 		};
 
 		originalRect2 = {
 			width: originalRect.width,
-			height: childRect.height,
+			height: newRect.height,
 			left: newRect.left,
 			top: newRect.top,
 		};
@@ -2262,7 +2262,7 @@ async function resized()
 	contentLeftRect = false;
 	contentRightRect = false;
 	barHeaderRect = false;
-	
+
 	if((onReading || _onReading) && isLoaded)
 	{
 		if(!readingIsEbook)
