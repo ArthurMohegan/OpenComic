@@ -2922,7 +2922,7 @@ async function openComic(animation = true, path = true, mainPath = true, end = f
 
 	reading.hideContent(isFullScreen, true);
 
-	let isCanvas = false;
+	let isPdf = false;
 	let isEbook = false;
 	let compressedFile = fileManager.lastCompressedFile(path);
 
@@ -2931,10 +2931,10 @@ async function openComic(animation = true, path = true, mainPath = true, end = f
 		let features = fileManager.fileCompressed(compressedFile);
 		features = features.getFeatures();
 
-		if(features.canvas && !file.config.extractDocumentImages)
+		if(features.pdf && !file.config.extractDocumentImages)
 		{
 			await file.makeAvailable([{path: compressedFile}]);
-			isCanvas = true;
+			isPdf = true;
 		}
 		else if(features.ebook && !file.config.extractDocumentImages)
 		{
@@ -3019,7 +3019,7 @@ async function openComic(animation = true, path = true, mainPath = true, end = f
 					path: file.path,
 					mainPath: mainPath,
 					size: file.size || false,
-					canvas: isCanvas,
+					pdf: isPdf,
 					ebook: isEbook,
 					folder: false,
 				});		
@@ -3097,7 +3097,7 @@ async function openComic(animation = true, path = true, mainPath = true, end = f
 
 	});
 
-	reading.read(path, indexStart, end, isCanvas, isEbook, imagePath);
+	reading.read(path, indexStart, end, isPdf, isEbook, imagePath);
 	reading.hideContent(isFullScreen, true);
 	reading.music.read(hasMusic, files);
 

@@ -1046,7 +1046,8 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 			read: true,
 			single: true,
 			vector: false,
-			canvas: false,
+			// canvas: false,
+			pdf: false,
 			html: false,
 			ebook: false,
 			progress: true,
@@ -1055,7 +1056,8 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 			read: true,
 			single: true,
 			vector: true,
-			canvas: true,
+			// canvas: true,
+			pdf: true,
 			html: true,
 			ebook: false,
 			progress: true,
@@ -1064,7 +1066,8 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 			read: true,
 			single: true,
 			vector: true,
-			canvas: false,
+			// canvas: false,
+			pdf: false,
 			html: true,
 			ebook: true,
 			progress: true,
@@ -1073,7 +1076,8 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 			read: true,
 			single: true,
 			vector: true,
-			canvas: false,
+			// canvas: false,
+			pdf: false,
 			html: true,
 			ebook: true,
 			progress: true,
@@ -2357,6 +2361,7 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 
 	// PDF
 	this.pdf = false;
+	this.pdfToc = false;
 
 	this.openPdf = async function() {
 
@@ -2374,6 +2379,58 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 		}).promise;
 
 		return this.pdf;
+
+	}
+
+	this.readPdfToc = async function() {
+
+		if(this.pdfToc)
+			return this.pdfToc;
+
+		const pdf = await this.openPdf();
+		const outline = await pdf.getOutline();
+
+		const getPage = async function(destination) {
+
+			if(!destination)
+				return false;
+
+			try
+			{
+				if(typeof destination === 'string')
+					destination = await pdf.getDestination(destination);
+
+				if(!Array.isArray(destination) || !destination[0])
+					return false;
+
+				return await pdf.getPageIndex(destination[0]) + 1;
+			}
+			catch(error)
+			{
+				console.warn('Failed to resolve PDF outline destination', error);
+				return false;
+			}
+
+		};
+
+		const normalize = async function(items) {
+
+			if(!Array.isArray(items))
+				return [];
+
+			return Promise.all(items.map(async function(item) {
+
+				return {
+					name: String(item.title || '').trim(),
+					page: await getPage(item.dest),
+					subitems: await normalize(item.items),
+				};
+
+			}));
+
+		};
+
+		return this.pdfToc = await normalize(outline);
 
 	}
 

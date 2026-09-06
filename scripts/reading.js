@@ -2894,7 +2894,7 @@ function reload(full = false, imageIndex = false)
 	}
 	else
 	{
-		read(readingCurrentPath, imageIndex, false, readingIsCanvas, readingIsEbook);
+		read(readingCurrentPath, imageIndex, false, readingIsPdf, readingIsEbook);
 	}
 }
 
@@ -3225,7 +3225,7 @@ function loadBookmarks(bookmarksChild = false)
 
 	handlebarsContext.bookmarks = _bookmarks;
 	handlebarsContext.bookmarksChild = bookmarksChild;
-	handlebarsContext.bookmarksSaveImages = (reading.isCanvas() || reading.isEbook()) ? false : true;
+	handlebarsContext.bookmarksSaveImages = (reading.isPdf() || reading.isEbook()) ? false : true;
 
 	dom.query(!bookmarksChild ? '#collections-bookmark .menu-simple' : '#collections-bookmark .menu-simple > div').html(template.load('reading.elements.menus.collections.bookmarks.html'));
 }
@@ -4085,7 +4085,7 @@ async function generateEbookPages(end = false, reset = false, fast = false, imag
 			const width = chapter.fixedLayout ? chapter.width : ebookConfig.width;
 			const height = chapter.fixedLayout ? chapter.height : ebookConfig.height;
 
-			imagesData[index] = Object.assign(page, {path, index, width, height, aspectRatio: (width / height), name: page.name, fixedLayout: chapter.fixedLayout, canvas: false, ebook: true, folder: false});
+			imagesData[index] = Object.assign(page, {path, index, width, height, aspectRatio: (width / height), name: page.name, fixedLayout: chapter.fixedLayout, pdf: false, ebook: true, folder: false});
 			items.push(imagesData[index]);
 
 			comics.push({
@@ -4096,7 +4096,7 @@ async function generateEbookPages(end = false, reset = false, fast = false, imag
 				path: path,
 				mainPath: '', // mainPath,
 				size: false,
-				canvas: false,
+				pdf: false,
 				ebook: true,
 				folder: false,
 			});
@@ -4193,17 +4193,17 @@ function flattenToc(items)
 	]);
 }
 
-function currentToc(index = false)
+async function currentToc(index = false)
 {
 	index = index || currentImagePage();
 	let closest = {page: -1};
 
-	if(!readingIsEbook && !_ebook.toc || !_ebook.toc.length)
-		return closest;
+	if(!readingIsEbook && !readingIsPdf) return closest;
 
-	const toc = flattenToc(_ebook.toc);
+	let toc = readingIsEbook ? _ebook?.toc : (readingFileC ? await readingFileC.readPdfToc() : false);
+	if(!toc || !toc.length) return closest;
 
-	// console.log(toc);
+	toc = flattenToc(toc);
 	
 	for(let i = 0, len = toc.length; i < len; i++)
 	{
@@ -4681,10 +4681,10 @@ function _mouseleave()
 	isMouseenter.document = false;
 }
 
-var touchTimeout, mouseleave = {lens: false, body: false, window: false}, isMouseenter = {document: true}, touchStart = false, magnifyingGlassOffset = false, readingCurrentPath = false, zoomMoveData = {}, magnifyingGlassScroll = {scrollTop: false, time: 0}, readingDragScroll = false, gamepadScroll = false, readingIsCanvas = false, readingIsEbook = false, readingFile = false, readingFileC = false, gamepadAxesNow = 0, scrollInStart = false, scrollInEnd = false, trackingCurrent = false;
+var touchTimeout, mouseleave = {lens: false, body: false, window: false}, isMouseenter = {document: true}, touchStart = false, magnifyingGlassOffset = false, readingCurrentPath = false, zoomMoveData = {}, magnifyingGlassScroll = {scrollTop: false, time: 0}, readingDragScroll = false, gamepadScroll = false, readingIsPdf = false, readingIsEbook = false, readingFile = false, readingFileC = false, gamepadAxesNow = 0, scrollInStart = false, scrollInEnd = false, trackingCurrent = false;
 
 //It starts with the reading of a comic, events, argar images, counting images ...
-async function read(path, index = 1, end = false, isCanvas = false, isEbook = false, imagePath = false)
+async function read(path, index = 1, end = false, isPdf = false, isEbook = false, imagePath = false)
 {
 	let contentRightIndex = template.contentRightIndex();
 
@@ -5260,7 +5260,7 @@ async function read(path, index = 1, end = false, isCanvas = false, isEbook = fa
 			imagesNum++;
 	}
 
-	readingIsCanvas = isCanvas;
+	readingIsPdf = isPdf;
 	readingIsEbook = isEbook;
 
 	if(readingFile) readingFile.destroy();
@@ -5276,7 +5276,7 @@ async function read(path, index = 1, end = false, isCanvas = false, isEbook = fa
 		dom.this(contentRight).find('.loading').remove();
 		dom.this(contentRight).find('.reading-body').css({opacity: 1});
 
-		if(!isCanvas && !isEbook)
+		if(!isPdf && !isEbook)
 		{
 			setTimeout(function(){
 				view.getAllSizes(template.contentRightIndex());
@@ -5285,10 +5285,10 @@ async function read(path, index = 1, end = false, isCanvas = false, isEbook = fa
 
 	});
 
-	if(isCanvas)
+	if(isPdf)
 	{
 		readingFileC = fileManager.fileCompressed(path);
-		await render.setFile(readingFileC, (config.readingMagnifyingGlass ? config.readingMagnifyingGlassZoom : false));
+		await render.setFile(readingFileC, (config.readingMagnifyingGlass ? config.readingMagnifyingGlassZoom : false), 'pdf');
 
 		// Avoid continue if another comic has been opened
 		if(contentRightIndex != template.contentRightIndex())
@@ -5553,7 +5553,7 @@ module.exports = {
 	get ebookHasSelection(){return ebookHasSelection},
 	getConfig: getConfig,
 	isEbook: function(){return readingIsEbook},
-	isCanvas: function(){return readingIsCanvas},
+	isPdf: function(){return readingIsPdf},
 	rotateImage: rotateImage,
 	setIsLoaded: function(value){isLoaded=value},
 	isLoaded: function(value){return isLoaded},

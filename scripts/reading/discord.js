@@ -64,13 +64,13 @@ function logout()
 
 var times = {}, currentTime = {}, cache = {};
 
-function getState(data)
+async function getState(data)
 {
 	const states = [];
 
-	if(reading.isEbook())
+	if(reading.isEbook() || reading.isPdf())
 	{
-		const currentToc = reading.currentToc();
+		const currentToc = await reading.currentToc();
 
 		if(currentToc.name)
 			states.push(currentToc.name);
@@ -120,7 +120,7 @@ async function update(focused = true)
 	const data = cache[path] ?? {};
 
 	const title = data.title = data.title ?? (onReading ? tracking.getTitle(true) : language.global.library);
-	const state = onReading ? getState(data)+'  ' : '  ';
+	const state = onReading ? (await getState(data))+'  ' : '  ';
 
 	if(focused)
 	{
