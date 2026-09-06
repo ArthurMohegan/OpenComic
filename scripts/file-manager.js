@@ -1069,6 +1069,15 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 			ebook: true,
 			progress: true,
 		},
+		foliate: {
+			read: true,
+			single: true,
+			vector: true,
+			canvas: false,
+			html: true,
+			ebook: true,
+			progress: true,
+		},
 	};
 
 	this.features = false;
@@ -1144,6 +1153,8 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 				force = 'pdf';
 			else if(compatible.compressed.epub.has(ext))
 				force = 'epub';
+			else if(compatible.compressed.foliate.has(ext))
+				force = 'foliate';
 		}
 
 		this.features = this._features[force];
@@ -1201,7 +1212,7 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 				files = await this.read7z();
 			else if(this.features.pdf)
 				files = await this.readPdf();
-			else if(this.features.epub)
+			else if(this.features.epub || this.features.foliate)
 				files = await this.readEpub();
 		}
 		catch(error)
@@ -1234,7 +1245,7 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 			return this.readCompressedMetadata();
 		else if(this.features.pdf)
 			return this.readPdfMetadata();
-		else if(this.features.epub)
+		else if(this.features.epub || this.features.foliate)
 			return this.readEpubMetadata();
 
 		return {};
@@ -1624,7 +1635,7 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 				files = await this.extract7z();
 			else if(this.features.pdf)
 				files = await this.extractPdf();
-			else if(this.features.epub)
+			else if(this.features.epub || this.features.foliate)
 				files = await this.extractEpub();
 		}
 		catch(error)
@@ -1732,6 +1743,8 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 
 	this.saveEbookPagesCache = async function(pages, config = {}) {
 
+		if(this.features.foliate) return;
+
 		const _isServer = isServer(this.realPath);
 		const mtime = !_isServer ? fs.statSync(firstCompressedFile(this.realPath)).mtime.getTime() : 1;
 
@@ -1757,7 +1770,9 @@ var fileCompressed = function(path, _realPath = false, forceType = false, prefix
 
 	this.ebookPagesCache = async function(config = {}) {
 
-		if(this.config.cache)
+		if(this.features.foliate) return false;
+
+		if(this.config.cache && window.disableEbookPagesCache !== true)
 		{
 			const _isServer = isServer(this.realPath);
 			const mtime = !_isServer ? fs.statSync(firstCompressedFile(this.realPath)).mtime.getTime() : 1;

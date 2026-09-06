@@ -51,7 +51,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Add support for Bangumi tracking site integration [`4ec4550`](https://github.com/ollm/OpenComic/commit/4ec4550d8d919ec09294bcf76b118e92d7dbb220)
 - Option to keep big halftones [`ca4f66a`](https://github.com/ollm/OpenComic/commit/ca4f66ad94225b3eaa24474a03e0abc5b368731f)
 - Setting to use the first image as the poster for parent folders [`850ec8b`](https://github.com/ollm/OpenComic/commit/850ec8b83647402d98ea8075e7a020f0bdbcd397)
-- Migrate from `epubjs` to `foliatejs` and update related functionalities
+- Migrate from `epubjs` to `foliatejs` and update related functionalities [`074de24`](https://github.com/ollm/OpenComic/commit/074de2422c8ff56c4a5eb7bb0e4f25bf1b916afb)
+- Support for `MOBI`, `AZW`, `AZW3` and `FB2` formats
+
 
 ##### 🐛 Bug Fixes
 

@@ -272,22 +272,12 @@ function goToPage(page, disableSave = false)
 	goToImageCL(page, true)
 }
 
-function goToEbookId(id, href)
+async function goToEbookId({id, href, kindle} = {})
 {
-	const hrefPage = _ebook.hrefPage;
+	const page = await _ebook.getPage({id, href, kindle});
 
-	if(hrefPage[href])
-		return goToPage(hrefPage[href]);
-
-	const chaptersIdPage = _ebook.chaptersIdPage;
-
-	for(const index in chaptersIdPage)
-	{
-		const ids = chaptersIdPage[index];
-
-		if(ids[id])
-			return goToPage(ids[id]);
-	}
+	if(page)
+		return goToPage(page);
 }
 
 var pageRangeHistory = [];

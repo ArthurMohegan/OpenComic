@@ -1,4 +1,7 @@
 var foliate = false;
+var foliateFb2 = false;
+var foliateMobi = false;
+var foliateFflate = false;
 const CONTAINER_PATH = 'META-INF/container.xml';
 
 var epub = function(path, config = {}) {
@@ -7,6 +10,8 @@ var epub = function(path, config = {}) {
 	this.realPath = fileManager.realPath(this.path);
 	this.realPathZip = fileManager.realPath(this.path, 0, {epub: 'epub-zip'});
 	this.config = config;
+	this.format = String(config.format || app.extname(this.path)).toLowerCase();
+	this.isFoliateBook = compatible.compressed.foliate.has(this.format);
 
 	this.zip = false;
 	this.zipFiles = false;
@@ -100,6 +105,33 @@ var epub = function(path, config = {}) {
 	this.openEpub = async function() {
 
 		if(this.epub) return;
+
+		if(this.isFoliateBook)
+		{
+			const file = new Blob([await fsp.readFile(this.path)]);
+
+			if(this.format === 'fb2')
+			{
+				if(foliateFb2 === false)
+					foliateFb2 = await import(asarToAsarUnpacked(p.join(appDir, 'node_modules/foliate-js/fb2.js')));
+
+				this.epub = await foliateFb2.makeFB2(file);
+			}
+			else
+			{
+				if(foliateMobi === false)
+					foliateMobi = await import(asarToAsarUnpacked(p.join(appDir, 'node_modules/foliate-js/mobi.js')));
+
+				if(foliateFflate === false)
+					foliateFflate = await import(asarToAsarUnpacked(p.join(appDir, 'node_modules/foliate-js/vendor/fflate.js')));
+
+				this.epub = await new foliateMobi.MOBI({unzlib: foliateFflate.unzlibSync}).open(file);
+			}
+
+			this.toc = {toc: await this.normalizeToc(this.epub.toc || [])};
+			return;
+		}
+
 		if(foliate === false)
 			foliate = await import(asarToAsarUnpacked(p.join(appDir, 'node_modules/foliate-js/epub.js')));
 
@@ -127,12 +159,94 @@ var epub = function(path, config = {}) {
 		this.toc = {toc: this.epub.toc || []};
 	}
 
+	this.resolveKindleLinkCache = {};
+
+	this.resolveKindleLink = async function(kindle) {
+
+		if(!kindle || !this.isFoliateBook || (this.format !== 'azw3' && this.format !== 'azw'))
+			return false;
+
+		if(this.resolveKindleLinkCache[kindle])
+			return this.resolveKindleLinkCache[kindle];
+
+		const target = await this.epub.resolveHref(kindle);
+		const id = sha1(kindle);
+
+		if(!target)
+			return false;
+
+		const chapter = await this.chapterHtml(target.index);
+		const element = target.anchor(chapter.html);
+
+		element?.setAttribute('oc-id', id);
+
+		if(!element)
+			return false;
+
+		this.resolveKindleLinkCache[kindle] = {
+			id: id,
+			chapterIndex: target.index,
+			element: element,
+		};
+
+		return this.resolveKindleLinkCache[kindle];
+
+	}
+
+	this.kindleLink = function(href) {
+
+		return app.extract(/(kindle:pos:fid:\w+:off:\w+)/iu, href, 1) || '';
+
+	}
+
+	this.normalizeToc = async function(items) {
+
+		if(!Array.isArray(items)) return [];
+
+		const normalized = [];
+
+		for(const item of items)
+		{
+			let href = item.href || '';
+			let id = item.id || '';
+			let kindle = '';
+
+			if(this.format === 'mobi')
+			{
+				const [index, _id] = this.epub.splitTOCHref(href);
+				id = _id;
+			}
+			else if(this.format === 'azw3' || this.format === 'azw')
+			{
+				const kindle = this.kindleLink(href);
+				const kindleLink = await this.resolveKindleLink(kindle)
+				id = kindleLink?.id || '';
+			}
+			else if(this.format === 'fb2')
+			{
+				if(typeof item.label !== 'undefined' && !item.label.trim())
+					item.label = '...';
+			}
+
+			normalized.push({
+				...item,
+				id,
+				href,
+				kindle,
+				subitems: await this.normalizeToc(item.subitems),
+			});
+		}
+
+		return normalized;
+
+	}
+
 	this.getHrefNames = function(items, hrefNames = {}) {
 
 		for(let i = 0, len = items.length; i < len; i++)
 		{
 			let item = items[i];
-			let href = item.href.replace(/[#?].*/, '');
+			let href = String(item.href || '').replace(/[#?].*/, '');
 
 			if(!hrefNames[href])
 				hrefNames[href] = item.label.trim();
@@ -153,7 +267,7 @@ var epub = function(path, config = {}) {
 
 		this.epubFiles = [];
 
-		if(this.epub.resources.cover)
+		if(this.epub.resources?.cover || (this.isFoliateBook && await this.getCoverBlob()))
 			this.epubFiles.push('cover.tbn');
 
 		let hrefNames = this.getHrefNames(this.toc.toc);
@@ -167,7 +281,10 @@ var epub = function(path, config = {}) {
 		{
 			let item = this.epub.sections[i];
 
-			let name = hrefNames[item.id] || app.capitalize(app.extract(/^(.*?)\.[a-z0-9]+$/, item.id, 1).trim());
+			if(!item.createDocument)
+				continue;
+
+			let name = hrefNames[item.id] || app.capitalize(app.extract(/^(.*?)\.[a-z0-9]+$/, String(item.id), 1).trim());
 
 			if(!name)
 			{
@@ -188,10 +305,45 @@ var epub = function(path, config = {}) {
 
 	this.epubImages = false;
 	this.epubImagesList = false;
+	this.coverBlob = false;
+
+	this.getCoverBlob = async function() {
+
+		if(this.coverBlob !== false) return this.coverBlob;
+
+		await this.openEpub();
+
+		if(typeof this.epub.getCover !== 'function')
+			return this.coverBlob = null;
+
+		try
+		{
+			this.coverBlob = await this.epub.getCover() || null;
+		}
+		catch(error)
+		{
+			console.warn('Failed to load ebook cover', error);
+			this.coverBlob = null;
+		}
+
+		return this.coverBlob;
+
+	}
+
+	this.writeCover = async function(path) {
+
+		const cover = await this.getCoverBlob();
+		if(!cover) return false;
+
+		await fsp.writeFile(path, Buffer.from(await cover.arrayBuffer()));
+		return true;
+
+	}
 
 	this.readEpubImages = async function() {
 
 		if(this.epubImagesList) return this.epubImagesList;
+		if(this.isFoliateBook) return this.epubImagesList = [];
 
 		await this.openEpub();
 
@@ -200,7 +352,7 @@ var epub = function(path, config = {}) {
 		this.epubImages = [];
 		this.epubImagesList = [];
 
-		if(this.epub.resources.cover)
+		if(this.epub.resources?.cover)
 		{
 			this.epubImagesList.push('cover.tbn');
 
@@ -373,6 +525,20 @@ var epub = function(path, config = {}) {
 
 		let metadata = {...this.epub.metadata};
 
+		if(this.isFoliateBook)
+		{
+			const authors = Array.isArray(metadata.author) ? metadata.author : [];
+			const authorNames = authors.map(author => typeof author === 'string' ? author : author.name).filter(Boolean).join(', ');
+
+			metadata.author = authorNames;
+			metadata.creator = authorNames;
+			metadata.pubdate = metadata.pubdate || metadata.published || '';
+			metadata.modified_date = metadata.modified_date || metadata.modified || '';
+			metadata.genre = Array.isArray(metadata.subject) ? metadata.subject.join(', ') : (metadata.subject || '');
+
+			return this.epubMetadata = metadata;
+		}
+
 		let res = fs.readFileSync(this.opf, 'utf8');
 
 		let parser = new DOMParser();
@@ -422,6 +588,7 @@ var epub = function(path, config = {}) {
 	}
 
 	this.chaptersHtml = {};
+	this.chaptersHtmlQueue = Promise.resolve();
 
 	this.request = async function(path, type = 'xml') {
 
@@ -441,12 +608,42 @@ var epub = function(path, config = {}) {
 
 		if(this.chaptersHtml[index]) return this.chaptersHtml[index];
 
-		let section = this.epub.sections[index];
+		if(!this.isFoliateBook)
+		{
+			let section = this.epub.sections[index];
 
-		if(section)
-			return this.chaptersHtml[index] = {html: await section.createDocument(), section: section};
-		else
-			throw new Error('Epub section not exists');
+			if(section)
+				return this.chaptersHtml[index] = {html: await section.createDocument(), section: section};
+			else
+				throw new Error('Epub section not exists');
+		}
+
+		const load = this.chaptersHtmlQueue.then(async function() {
+
+			if(this.chaptersHtml[index]) return this.chaptersHtml[index];
+
+			const section = this.epub.sections[index];
+
+			if(!section)
+				throw new Error('Epub section not exists');
+
+			let html;
+
+			if(this.format === 'fb2')
+				html = await section.createDocument();
+			else
+			{
+				const url = await section.load();
+				const text = await fetch(url).then(response => response.text());
+				html = new DOMParser().parseFromString(text, 'application/xhtml+xml');
+			}
+
+			return this.chaptersHtml[index] = {html: html, section: section};
+
+		}.bind(this));
+
+		this.chaptersHtmlQueue = load.catch(function(){});
+		return load;
 
 	}
 
@@ -464,7 +661,11 @@ var epub = function(path, config = {}) {
 
 			if(file.name == 'cover.tbn')
 			{
-				await fsp.copyFile(self.resourcePath(self.epub.resources.cover.href), file.path);
+				if(self.isFoliateBook)
+					await self.writeCover(file.path);
+				else
+					await fsp.copyFile(self.resourcePath(self.epub.resources.cover.href), file.path);
+
 				if(callback) callback(file.name);
 
 				return null;
@@ -477,8 +678,8 @@ var epub = function(path, config = {}) {
 				const dirname = p.dirname(self.resourcePath(chapter.section.id));
 
 				const spine = {
-					...(self.epub.resources.spine[index] || {}),
-					href: chapter.section.id,
+					...(self.epub.resources?.spine?.[index] || {}),
+					href: String(chapter.section.id),
 				};
 
 				const spineFixed = spine.properties?.includes('rendition:layout-pre-paginated') ?? false;
@@ -510,6 +711,7 @@ var epub = function(path, config = {}) {
 		if(chapters.length > 0)
 		{
 			this.ebook = ebook.load({chapters: chapters});
+			this.ebook.resolveKindleLink = this.resolveKindleLink.bind(this);
 
 			try
 			{
@@ -548,8 +750,8 @@ var epub = function(path, config = {}) {
 				const dirname = p.dirname(self.resourcePath(chapter.section.id));
 
 				const spine = {
-					...(self.epub.resources.spine[index] || {}),
-					href: chapter.section.id,
+					...(self.epub.resources?.spine?.[index] || {}),
+					href: String(chapter.section.id),
 				};
 
 				const spineFixed = spine.properties?.includes('rendition:layout-pre-paginated') || spine.properties?.includes('layout-pre-paginated') || false;
@@ -584,6 +786,7 @@ var epub = function(path, config = {}) {
 		if(chapters.length > 0)
 		{
 			this.ebook = ebook.load({chapters: chapters});
+			this.ebook.resolveKindleLink = this.resolveKindleLink.bind(this);
 
 			if(fromCache)
 			{
@@ -605,13 +808,9 @@ var epub = function(path, config = {}) {
 
 			});
 
-			let res = fs.readFileSync(this.opf, 'utf8');
-			let parser = new DOMParser();
-			let opf = parser.parseFromString(res, 'text/xml');
-
 			console.time('generateTocWithPages');
 
-			let toc = this.ebook.generateTocWithPages(this.toc.toc);
+			let toc = await this.ebook.generateTocWithPages(this.toc.toc);
 
 			console.timeEnd('generateTocWithPages');
 
@@ -686,12 +885,21 @@ var epub = function(path, config = {}) {
 
 		if(this.zip) this.zip.destroy();
 
+		if(this.epub && typeof this.epub.destroy === 'function')
+			this.epub.destroy();
+
+		this.epub = false;
+		this.ebook = false;
+		this.chaptersHtml = {};
+		this.chaptersHtmlQueue = Promise.resolve();
+		this.coverBlob = false;
+		this.epubFiles = false;
+		this.epubImages = false;
+		this.epubImagesList = false;
+
 	}
 
 }
-
-
-
 
 module.exports = {
 	load: function(path, config) {
